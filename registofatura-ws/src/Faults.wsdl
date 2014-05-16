@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<wsdl:definitions name="Faults"
+    targetNamespace="urn:pt:faults:ws"
+    xmlns:tns="urn:pt:faults:ws"
+    xmlns:rf="urn:pt:registofatura:ws"
+    xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+    xmlns:xs="http://www.w3.org/2001/XMLSchema"
+    xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+    xmlns:soaphttp="http://schemas.xmlsoap.org/soap/http"
+    xmlns:wsamd="http://www.w3.org/2007/05/addressing/metadata">
+    
+    <wsdl:import location="registofatura.wsdl" namespace="urn:pt:registofatura:ws" />
+
+    <wsdl:types>
+        <!--
+            Definições dos tipos de dados
+        -->
+        <xs:schema attributeFormDefault="unqualified" elementFormDefault="unqualified"
+            targetNamespace="urn:pt:faults:ws">
+
+            <xs:element name="imAlive" type="tns:imAlive" />
+            <xs:complexType name="imAlive">
+            </xs:complexType>
+            
+            <xs:element name="imAliveResponse" type="tns:imAliveResponse" />
+            <xs:complexType name="imAliveResponse">
+                <xs:sequence>
+                    <xs:element name="grandfather" type="xs:int"/>
+                </xs:sequence>
+            </xs:complexType>
+            
+            <!--
+                O pedido da operação 'getLastServer' pede ao Servidor principal qual o identificador
+                do ultimo servidor ligado
+            -->
+            <xs:element name="getLastServer" type="tns:getLastServer" />
+            <xs:complexType name="getLastServer">
+                <xs:sequence>
+                    <xs:element name="notUsed" type="xs:boolean"/>
+                </xs:sequence>
+            </xs:complexType>
+            
+            <!-- 
+            	A resposta normal da operação 'getLastServer' devolve o tamanho da
+            	tabela e o último URL para o qual este server deverá pedir mais
+            	informações.
+            -->
+            <xs:element name="getLastServerResponse" type="tns:getLastServerResponse" />
+            <xs:complexType name="getLastServerResponse">
+                <xs:sequence>
+                    <xs:element name="last" type="xs:int"/>
+                </xs:sequence>
+            </xs:complexType>
+
+           <!--
+                Liga-se a um servidor como seu filho
+            -->
+            <xs:element name="connectTo" type="tns:connectTo" />
+            <xs:complexType name="connectTo">
+                <xs:sequence>
+                    <xs:element name="son" type="xs:int"/>
+                </xs:sequence>
+            </xs:complexType>
+            
+            <!-- 
+            	A resposta normal da operação 'connectTo' não devolve nada.
+            -->
+            
+            <!--
+                Devolve um ticket
+            -->
+            <xs:element name="ticket" type="tns:ticket" />
+            <xs:complexType name="ticket">
+                <xs:sequence>
+                    <xs:element name="notUsed" type="xs:boolean"/>
+                </xs:sequence>
+            </xs:complexType>
+            
+            <xs:element name="ticketResponse" type="tns:ticketResponse" />
+            <xs:complexType name="ticketResponse">
+                <xs:sequence>
+                    <xs:element name="ticket" type="xs:int"/>
+                </xs:sequence>
+            </xs:complexType>
+            
+		</xs:schema>
+	</wsdl:types>
+
+    <!--
+        As mensagens referenciam os elementos definidos no xs:schema
+    -->
+    <wsdl:message name="imAlive" >
+    	<wsdl:part name="parameters" element="tns:imAlive" />
+   	</wsdl:message>
+   	<wsdl:message name="imAliveResponse">
+        <wsdl:part name="parameters" element="tns:imAliveResponse" />
+    </wsdl:message>
+    <wsdl:message name="getLastServer" >
+    	<wsdl:part name="parameters" element="tns:getLastServer" />
+    </wsdl:message>
+    <wsdl:message name="getLastServerResponse">
+        <wsdl:part name="parameters" element="tns:getLastServerResponse" />
+    </wsdl:message>
+    <wsdl:message name="connectTo">
+        <wsdl:part name="parameters" element="tns:connectTo" />
+    </wsdl:message>
+    <wsdl:message name="ticket">
+        <wsdl:part name="parameters" element="tns:ticket" />
+    </wsdl:message>
+    <wsdl:message name="ticketResponse">
+        <wsdl:part name="parameters" element="tns:ticketResponse" />
+    </wsdl:message>
+    
+
+    <!--
+        Definição das operações do serviço
+    -->
+    <wsdl:portType name="FaultsPortType">
+        <!--
+            Avisa o Servidor na hierarquia abaixo que esta vivo e qual o Servidor da sua hierarquia acima.
+        -->
+        <wsdl:operation name="imAlive" >
+        	<wsdl:input message="tns:imAlive" name="imAlive" />
+        	<wsdl:output message="tns:imAliveResponse" name="imAliveResponse" />
+        </wsdl:operation>
+
+        <!--
+            Dirige-se ao servidor principal para se registar.
+        -->
+        <wsdl:operation name="getLastServer">
+        	<wsdl:input message="tns:getLastServer" name="getLastServer" />
+            <wsdl:output message="tns:getLastServerResponse" name="getLastServerResponse" />
+        </wsdl:operation>
+        
+        <wsdl:operation name="connectTo">
+        	<wsdl:input message="tns:connectTo" name="connectTo" />
+        </wsdl:operation>
+
+		<wsdl:operation name="pedirSerie">
+            <wsdl:input message="rf:pedirSerie" name="rf:pedirSerie" />
+        </wsdl:operation>
+        
+        <wsdl:operation name="comunicarFatura">
+            <wsdl:input message="rf:comunicarFatura" name="rf:comunicarFatura" />
+        </wsdl:operation>
+
+		<wsdl:operation name="ticket">
+        	<wsdl:input message="tns:ticket" name="ticket" />
+            <wsdl:output message="tns:ticketResponse" name="ticketResponse" />
+        </wsdl:operation>
+
+    </wsdl:portType>
+
+    <!--
+        Vinculação das operações abstractas (descritas em wsdl:portType)
+        e operações concretas.
+        Neste caso, as operações devem ser invocadas através de mensagens SOAP
+        transmitidas sobre o protocolo HTTP (que por sua vez usa TCP/IP)
+    -->
+    <wsdl:binding name="FaultsServiceSoapBinding" type="tns:FaultsPortType">
+        <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+        <wsdl:operation name="imAlive">
+            <soap:operation soapAction="" />
+            <wsdl:input>
+            	<soap:body use="literal" />
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" />
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="getLastServer">
+            <soap:operation soapAction="" />
+            <wsdl:input>
+                <soap:body use="literal" />
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" />
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="connectTo">
+            <soap:operation soapAction="" />
+            <wsdl:input>
+                <soap:body use="literal" />
+            </wsdl:input>
+        </wsdl:operation>
+        <wsdl:operation name="pedirSerie">
+            <soap:operation soapAction="" />
+            <wsdl:input>
+            	<soap:body use="literal" />
+            </wsdl:input>
+        </wsdl:operation>
+        <wsdl:operation name="comunicarFatura">
+            <soap:operation soapAction="" />
+            <wsdl:input>
+            	<soap:body use="literal" />
+            </wsdl:input>
+        </wsdl:operation>
+        <wsdl:operation name="ticket">
+            <soap:operation soapAction="" />
+            <wsdl:input>
+                <soap:body use="literal" />
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" />
+            </wsdl:output>
+        </wsdl:operation>
+    </wsdl:binding>
+    
+    <wsdl:service name="FaultsService">
+        <wsdl:port name="FaultsPort" binding="tns:FaultsServiceSoapBinding">
+            <soap:address location="http://localhost:8080/faltas" />
+        </wsdl:port>
+    </wsdl:service>
+
+</wsdl:definitions>

@@ -1,0 +1,91 @@
+Projecto de Sistemas Distribuídos
+
+Primeira entrega - 2014-04-11 - 20h
+
+Grupo de SD 35
+
+Repositório T_18_32_35
+
+Daniel Castro 73997 daniel.castro@tecnico.ulisboa.pt
+Pedro Silva 73951 pedro.mgd.silva@hotmail.com
+João Godinho 70577 joaocfgodinho@gmail.com
+-------------------------------------------------------------------------------
+
+RegistoFatura
+
+Instruções de instalação para Linux
+
+[0] Assuncoes
+
+O servidor deve ter uma base de dados MySQL a correr.
+Esta base de dados deve ter as seguintes propriedades:
+NOME: faturasdb
+LOCAL: localhost:3306
+UTILIZADOR: rest
+PASSWORD: r3st
+
+Caso se queira modificar a base de dados e' necessario alterar os seguintes ficheiros:
+
+build.xml linhas 59 - 66 mudar o value das properties respectivas
+
+[1] Iniciar servidores
+
+MySQL:
+> mysql -u root -p
+> CREATE DATABASE faturasdb;
+> CREATE USER 'rest'@'localhost' IDENTIFIED BY 'r3st';
+> GRANT ALL ON faturasdb.* TO 'rest'@'localhost';
+> EXIT;
+
+JUDDI:
+> startup.sh
+
+
+[2] Criar directoria de trabalho
+
+mkdir temp
+cd temp
+mkdir registofatura-ws
+mkdir registofatura-ws-cli
+mkdir lib
+
+
+[3] Obter versão entregue
+# obtenção do server
+svn co svn+ssh://ist1XXXXX@sigma.ist.utl.pt/afs/ist.utl.pt/groups/leic-es/svn/T_18_32_35/registofatura-ws/tags/R_1 registofatura-ws
+# obtenção do cliente
+svn co svn+ssh://ist1XXXXX@sigma.ist.utl.pt/afs/ist.utl.pt/groups/leic-es/svn/T_18_32_35/registofatura-ws-cli/tags/R_1 registofatura-ws-cli
+# obtenção das bibliotecas
+svn co svn+ssh://ist1XXXXX@sigma.ist.utl.pt/afs/ist.utl.pt/groups/leic-es/svn/ESSD/lib/trunk lib
+
+# trocar XXXXX pelo user do sigma
+
+[4] Preparar dados de teste
+> cd registofatura-ws
+> ant clean clean-db populate
+> cd ..
+
+
+[5] Construir e executar servidor
+> cd registofatura-ws
+> ant run
+
+
+[6] Construir cliente
+> cd chequerefeicao-ws-cli
+> ant run
+> cd ..
+
+-------------------------------------------------------------------------------
+
+Instruções de teste:
+(Como verificar que todas as funcionalidades estão a funcionar correctamente)
+[1] Executar cliente ( O cliente testa as funcionalidades com casos onde deve correr correctamente e com caso contrarios)
+(não é suposto aparecer nenhuma SoapException e o servidor não faz prints das funções remotas)
+
+> cd registofatura-ws-cli
+> ant run
+> cd ..
+
+-------------------------------------------------------------------------------
+FIM

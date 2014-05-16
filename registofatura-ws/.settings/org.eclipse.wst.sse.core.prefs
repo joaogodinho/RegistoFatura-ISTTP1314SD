@@ -1,0 +1,4 @@
+eclipse.preferences.version=1
+task-tags/taskPriorities=1,2,0,0
+task-tags/taskTags=TODO,FIXME,NOBIG,DOJAVADOC
+task-tags/use-project-settings=true

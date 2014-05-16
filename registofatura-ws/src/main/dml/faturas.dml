@@ -1,0 +1,102 @@
+package pt.registofatura.domain;
+
+class Financa {
+	int ultimoNumSerie;
+}
+
+class Serie {
+	int numero;
+	int seq;
+	DateTime data;
+}
+
+class Entidade {
+	int nif;
+	String nome;
+}
+
+class Fatura {
+	int iva;
+	int numSeq;
+	int total;
+	DateTime data;
+}
+
+class ItemFatura {
+	String descricao;
+	int preco;
+	int quantidade;
+}
+
+relation FaturaTemItens {
+	Fatura playsRole fatura {
+		multiplicity 1;
+	}
+	ItemFatura playsRole item {
+		multiplicity *;
+	}
+}
+
+relation FaturaTemEmissor {
+	Fatura playsRole faturaEmissor {
+		multiplicity *;
+	}
+	Entidade playsRole emissor {
+		multiplicity 1;
+	}
+}
+
+relation FaturaTemCliente {
+	Fatura playsRole faturaCliente {
+		multiplicity *;
+	}
+	Entidade playsRole cliente {
+		multiplicity 0..1;
+	}
+}
+
+relation FaturaTemSerie {
+	Fatura playsRole fatura {
+		multiplicity *;
+	}
+	Serie playsRole serie {
+		multiplicity 1;
+	}
+}
+
+
+relation SerieTemEmissor {
+	Serie playsRole serie {
+		multiplicity *;
+	}
+	Entidade playsRole emissor {
+		multiplicity 1;
+	}
+}
+
+relation FinancaTemEntidades {
+	Financa playsRole financa {
+		multiplicity 1;
+	}
+	Entidade playsRole entidade {
+		multiplicity *;
+	}
+}
+
+relation FinancaTemSeries {
+	Financa playsRole financa {
+		multiplicity 1;
+	}
+	Serie playsRole serie {
+		multiplicity *;
+	}
+}
+
+relation FinancaTemFaturas {
+	Financa playsRole financa {
+		multiplicity 1;
+	}
+	Fatura playsRole fatura {
+		multiplicity *;
+	}
+}

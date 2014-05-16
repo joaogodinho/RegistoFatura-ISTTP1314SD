@@ -1,0 +1,317 @@
+<project name="registofatura-ws" default="build" basedir=".">
+
+	<description>
+        Standalone Java Web Service build file - contract first
+
+        An Ant project defines targets that execute tasks
+        parameterized by properties and paths.
+
+        More information at: http://ant.apache.org/manual/
+    </description>
+
+	<!-- properties and paths -->
+
+	<property name="javac.encoding" value="UTF-8"/>
+	<property name="java.file.encoding" value="UTF-8"/>
+
+	<property name="ant.build.javac.source" value="1.7" />
+	<property name="ant.build.javac.target" value="1.7" />
+	
+	<property name="src.dir" location="src" />
+	<property name="main.src.dir" value="${src.dir}/main"/>
+	<property name="java.main.src.dir" value="${main.src.dir}/java"/>
+	<property name="dml.src.dir" value="${main.src.dir}/dml"/>
+	
+	<property name="dml.filename" value="faturas.dml"/>
+	<property name="dml.file" value="${dml.src.dir}/${dml.filename}"/>
+	
+	<property name="build.dir" location="build" />
+	<property name="generated-src.build.dir" value="${build.dir}/src"/>
+	
+	<property name="build.classes.dir" location="${build.dir}/classes" />
+	<property name="build.src.dir" location="${build.dir}/src" />
+	<property name="lib.dir" value="../lib" />
+
+	<path id="project.classpath">
+		<!-- compiled classes -->
+		<pathelement location="${build.classes.dir}" />
+		<fileset dir="${lib.dir}">
+			<include name="**/*.jar" />
+		</fileset>
+		<!-- <fileset dir="../juddi-lib">
+			<include name="**/*.jar" />
+		</fileset> -->
+	</path>
+
+	<taskdef resource="dml-ant.xml" classpathref="project.classpath"/>
+	
+	<property name="ws.name" value="registofatura" />
+	<property name="ws.url" value="http://localhost:41234/registofactura-ws/endpoint" />
+	<property name="uddi.url" value="http://localhost:8081" />
+	<property name="wsdl.file" value="${src.dir}/RegistoFatura.1_0.wsdl" />
+	<makeurl property="wsdl.url" file="${wsdl.file}" />
+	
+	<property name="ws.faults" value="faults" />
+	<property name="ws.faults.url" value="http://localhost:8080/faltas/endpoint" />
+	<property name="uddi.faults.url" value="http://localhost:8081" />
+	<property name="wsdl.faults.file" value="${src.dir}/Faults.wsdl" />
+	<makeurl property="wsdl.faults.url" file="${wsdl.faults.file}" />
+
+	<property name="sql.driver" value="com.mysql.jdbc.Driver" />
+	
+	<!-- alterar value do host da base de dados -->
+	<property name="sql.host" value="localhost:3306" />
+	<!-- alterar value da base de dados a usar -->
+	<property name="sql.db" value="faturasdb" />
+	<!-- alterar value do user da base de dados -->
+	<property name="sql.user" value="rest" />
+	<!-- alterar value da pass do user -->
+	<property name="sql.pass" value="r3st" />
+	
+	<!-- editar clean-db se adicionar bases de dados -->
+	<!-- base de dados server secundario 1 -->
+	<property name="sql.db1" value="faturasdb1" />
+	<!-- base de dados server secundario 2 -->
+	<property name="sql.db2" value="faturasdb2" />
+	
+	<property name="sql.url" value="jdbc:mysql://${sql.host}" />
+	
+	<!-- property name="main.class"
+		value="pt.ist.rest.presentationserver.PresentationServer" />
+	-->
+	<property name="run.populateclass" value="pt.registofatura.ws.FaturasSetup" />
+	<property name="run.mainclass" value="pt.registofatura.ws.impl.RegistoFaturaMain" />
+	<property name="run.args" value="${ws.url} ${ws.name} ${uddi.url}" />
+
+	
+	<!-- targets -->
+
+	<target name="show" description="Show property values">
+		<echo message="ant.project.name = ${ant.project.name}" />
+		<echo message="" />
+		<echo message="src.dir = ${src.dir}" />
+		<echo message="build.dir = ${build.dir}" />
+		<echo message="build.classes.dir = ${build.classes.dir}" />
+		<echo message="build.src.dir = ${build.classes.dir}" />
+		<echo message="" />
+		<pathconvert property="project.classpath" refid="project.classpath" />
+		<echo message="project.classpath= ${project.classpath}" />
+		<echo message="" />
+		<echo message="ws.name= ${ws.name}" />
+		<echo message="wsdl.url = ${wsdl.url}" />
+		<echo message="ws.url = ${ws.url}" />
+		<echo message="" />
+		<echo message="run.mainclass = ${run.mainclass}" />
+		<echo message="run.args = ${run.args}" />
+	</target>
+
+	<target name="init">
+		<!-- description="Create temporary work directories" -->
+		<mkdir dir="${build.dir}" />
+		<mkdir dir="${build.classes.dir}" />
+		<mkdir dir="${build.src.dir}" />
+		<mkdir dir="${generated-src.build.dir}" />
+	</target>
+
+	<target name="clean" description="Delete temporary work directory">
+		<delete dir="${build.dir}" />
+	</target>
+
+	<target name="prepare-resources" depends="init">
+		<!-- description="Include resource files in compiled program" -->
+		<copy todir="${build.classes.dir}" overwrite="true">
+			<fileset dir="${src.dir}" excludes="**/*.java" />
+		</copy>
+		<!--replace dir="${build.classes.dir}" excludes="**/*.class" summary="true">
+            <replacefilter token="@example-token@" value="${example-property}" />
+        </replace-->
+		<copy todir="${build.classes.dir}" file="log4j.properties" />
+	</target>
+
+	<target name="-wsinit" depends="init">
+		<property name="wsdl.local.file" value="${build.src.dir}/${ws.name}.wsdl" />
+		<property name="wsdl.faults.local.file" value="${build.src.dir}/${ws.faults}.wsdl" />
+		<!-- check is wsimport completed successfully -->
+		<property name="wsimport.success.file" value="${build.dir}/${ws.name}.wsimport" />
+		<property name="wsimport.faults.success.file" value="${build.dir}/${ws.faults}.wsimport" />
+		<available property="wsimport.success" file="${wsimport.success.file}" />
+		<available property="wsimport.faults.success" file="${wsimport.faults.success.file}" />
+		<!-- wsimport should execute if it did not complete successfully -->
+		<condition property="wsimport.flag">
+			<and>
+				<not>
+					<isset property="wsimport.success" />
+				</not>
+				<not>
+					<isset property="wsimport.faults.success" />
+				</not>
+			</and>
+		</condition>
+	</target>
+
+	<target name="wsimport" depends="-wsinit" if="wsimport.flag" description="Generate web service server">
+		<!-- create local copy of WSDL -->
+		<get src="${wsdl.url}" dest="${wsdl.local.file}" maxtime="30" retries="1" />
+		<get src="${wsdl.faults.url}" dest="${wsdl.faults.local.file}" maxtime="30" retries="1" />
+		<!-- generate web service classes using local WSDL -->
+		<makeurl property="wsdl.local.url" file="${wsdl.local.file}" />
+		<makeurl property="wsdl.faults.local.url" file="${wsdl.faults.local.file}" />
+		<echo message="Running wsimport -d ${build.classes.dir} -s ${build.src.dir} ${wsdl.local.url}" />
+		<exec executable="wsimport" failonerror="true">
+			<!-- assumes that wsimport tool is available in PATH environment property -->
+			<arg value="-d" />
+			<arg value="${build.classes.dir}" />
+			<arg value="-s" />
+			<arg value="${build.src.dir}" />
+			<arg value="${wsdl.local.url}" />
+			<arg value="-b" />
+			<arg value="${java.main.src.dir}/pt/registofatura/ws/handler/handler-chain-binding.xml"/>
+		</exec>
+		<touch file="${wsimport.success.file}" />
+		<echo message="Running wsimport -d ${build.classes.dir} -s ${build.src.dir} ${wsdl.faults.local.url}" />
+		<exec executable="wsimport" failonerror="true">
+			<!-- assumes that wsimport tool is available in PATH environment property -->
+			<arg value="-d" />
+			<arg value="${build.classes.dir}" />
+			<arg value="-s" />
+			<arg value="${build.src.dir}" />
+			<arg value="${wsdl.faults.local.url}" />
+			<arg value="-b" />
+			<arg value="${java.main.src.dir}/pt/registofatura/ws/handler/handler-chain-binding.xml"/>
+		</exec>
+		<touch file="${wsimport.faults.success.file}" />
+		<copy todir="${build.classes.dir}">
+			<fileset dir="${build.src.dir}">
+	      		<exclude name="**/*.java"/>
+		    </fileset>
+		</copy>
+	</target>
+
+	<target name="generate-domain" >
+		<echo message="Generating base domain classes..." />
+		<echo message="Using: ${dml.file}" />
+		<echo message="Generating domain files in ${java.main.src.dir}" />
+		<echo message="Generating base files in ${generated-src.build.dir}" />
+		<dml-domain-generator destDirectory="${java.main.src.dir}"
+  	                      destDirectoryBase="${generated-src.build.dir}">
+			<fileset file="${dml.file}"/>
+		</dml-domain-generator>
+	</target>
+
+	<target name="compile" depends="generate-domain,init,prepare-resources,wsimport" description="Compile source code">
+		<javac srcdir="${java.main.src.dir}" destdir="${build.classes.dir}" includeantruntime="false" debug="true">
+			<classpath refid="project.classpath" />
+			<src>
+				<pathelement path="${generated-src.build.dir}:${java.main.src.dir}"/>
+			</src>
+			<compilerarg line=""/>
+		</javac>
+	</target>
+
+	<target name="instrument-classes" depends="compile">
+		<echo message="Injecting FenixFramework Voodoo Magic..." />
+		<dml-post-processor dir="${build.classes.dir}">
+			<fileset file="${dml.file}"/>
+			<classpath refid="project.classpath" />
+		</dml-post-processor>
+	</target>
+
+	<target name="populate" depends="compile, instrument-classes" description="Populates program database">
+		<java classname="${run.populateclass}" fork="true" failonerror="true">
+			<jvmarg value="-XX:-UseSplitVerifier"/>
+			<jvmarg value="-Dhost=${sql.host}" />
+			<jvmarg value="-Ddatabase=${sql.db}" />
+			<jvmarg value="-Duser=${sql.user}" />
+			<jvmarg value="-Dpass=${sql.pass}" />
+			<classpath refid="project.classpath" />
+		</java>
+	</target>
+	
+	<target name="populate-sec1" depends="compile, instrument-classes" description="Populates program database">
+		<java classname="${run.populateclass}" fork="true" failonerror="true">
+			<jvmarg value="-XX:-UseSplitVerifier"/>
+			<jvmarg value="-Dhost=${sql.host}" />
+			<jvmarg value="-Ddatabase=${sql.db1}" />
+			<jvmarg value="-Duser=${sql.user}" />
+			<jvmarg value="-Dpass=${sql.pass}" />
+			<classpath refid="project.classpath" />
+		</java>
+	</target>
+	
+	<target name="populate-sec2" depends="compile, instrument-classes" description="Populates program database">
+		<java classname="${run.populateclass}" fork="true" failonerror="true">
+			<jvmarg value="-XX:-UseSplitVerifier"/>
+			<jvmarg value="-Dhost=${sql.host}" />
+			<jvmarg value="-Ddatabase=${sql.db2}" />
+			<jvmarg value="-Duser=${sql.user}" />
+			<jvmarg value="-Dpass=${sql.pass}" />
+			<classpath refid="project.classpath" />
+		</java>
+	</target>
+
+	<target name="run" depends="compile, instrument-classes"
+		description="Run program">
+		<java classname="${run.mainclass}" fork="true" failonerror="true">
+			<arg line="${run.args}" />
+			<jvmarg value="-XX:-UseSplitVerifier"/>
+			<jvmarg value="-Dhost=${sql.host}" />
+			<jvmarg value="-Ddatabase=${sql.db}" />
+			<jvmarg value="-Duser=${sql.user}" />
+			<jvmarg value="-Dpass=${sql.pass}" />
+			<classpath refid="project.classpath" />
+		</java>
+	</target>
+	
+	<target name="run-sec1" depends="instrument-classes, wsimport, compile"
+		description="Run program">
+		<copy todir="${build.classes.dir}" file="log4j.properties" />
+		<java classname="${run.mainclass}" fork="true" failonerror="true">
+			<arg line="${run.args}" />
+			<jvmarg value="-XX:-UseSplitVerifier"/>
+			<jvmarg value="-Dhost=${sql.host}" />
+			<jvmarg value="-Ddatabase=${sql.db1}" />
+			<jvmarg value="-Duser=${sql.user}" />
+			<jvmarg value="-Dpass=${sql.pass}" />
+			<classpath refid="project.classpath" />
+		</java>
+	</target>
+	
+	<target name="run-sec2" depends="instrument-classes, wsimport, compile"
+		description="Run program">
+		<copy todir="${build.classes.dir}" file="log4j.properties" />
+		<java classname="${run.mainclass}" fork="true" failonerror="true">
+			<arg line="${run.args}" />
+			<jvmarg value="-XX:-UseSplitVerifier"/>
+			<jvmarg value="-Dhost=${sql.host}" />
+			<jvmarg value="-Ddatabase=${sql.db2}" />
+			<jvmarg value="-Duser=${sql.user}" />
+			<jvmarg value="-Dpass=${sql.pass}" />
+			<classpath refid="project.classpath" />
+		</java>
+	</target>
+
+	<target name="clean-db" description="Recreated project's database">
+		<echo message="Creating SQL databases '${sql.db}' '${sql.db1}' '${sql.db2}'" />
+		<sql driver="${sql.driver}" url="${sql.url}" userid="${sql.user}" password="${sql.pass}">
+			<classpath refid="project.classpath" />
+    		DROP DATABASE IF EXISTS ${sql.db};
+			DROP DATABASE IF EXISTS ${sql.db1};
+			DROP DATABASE IF EXISTS ${sql.db2};
+	 	</sql>
+		<sql driver="${sql.driver}" url="${sql.url}" userid="${sql.user}" password="${sql.pass}">
+			<classpath refid="project.classpath" />
+    		CREATE DATABASE IF NOT EXISTS ${sql.db};
+			CREATE DATABASE IF NOT EXISTS ${sql.db1};
+			CREATE DATABASE IF NOT EXISTS ${sql.db2};
+ 		</sql>
+	</target>
+
+	<import file="script.xml" optional="true" />
+
+	<target name="build" depends="compile" description="Build project" />
+
+	<target name="reset-db" depends="clean-db,populate,populate-sec1,populate-sec2" />
+	
+	<target name="rebuild" depends="clean,build" />
+
+</project>

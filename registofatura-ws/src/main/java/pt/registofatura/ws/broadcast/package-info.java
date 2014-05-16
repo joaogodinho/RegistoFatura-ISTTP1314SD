@@ -1,0 +1,1 @@
+package pt.registofatura.ws.broadcast;
